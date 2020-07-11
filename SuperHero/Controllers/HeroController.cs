@@ -2,100 +2,152 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.EntityFrameworkCore;
 using SuperHero.Data;
+using SuperHero.Models;
 
 namespace SuperHero.Controllers
 {
-
     public class HeroController : Controller
     {
-        private ApplicationDbContext _context;
-        // GET: Hero
+        private readonly ApplicationDbContext _context;
+
         public HeroController(ApplicationDbContext context)
         {
             _context = context;
         }
-        public ActionResult Index()
+
+        // GET: Hero
+        public async Task<IActionResult> Index()
         {
-            return View();
+            return View(await _context.Hero.ToListAsync());
         }
 
         // GET: Hero/Details/5
-        public ActionResult Details(int id)
+        public async Task<IActionResult> Details(string id)
         {
-            return View();
+            if (id == null)
+            {
+                return NotFound();
+            }
+
+            var hero = await _context.Hero
+                .FirstOrDefaultAsync(m => m.Name == id);
+            if (hero == null)
+            {
+                return NotFound();
+            }
+
+            return View(hero);
         }
 
         // GET: Hero/Create
-        public ActionResult Create()
+        public IActionResult Create()
         {
-
             return View();
         }
 
         // POST: Hero/Create
+        // To protect from overposting attacks, enable the specific properties you want to bind to, for 
+        // more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult Create(IFormCollection collection)
+        public async Task<IActionResult> Create([Bind("Name,AlterEgo,PrimeAbility,SecondAbility,CatchPhrase")] Hero hero)
         {
-            try
+            if (ModelState.IsValid)
             {
-                // TODO: Add insert logic here
-
+                _context.Add(hero);
+                await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
             }
-            catch
-            {
-                return View();
-            }
+            return View(hero);
         }
 
         // GET: Hero/Edit/5
-        public ActionResult Edit(int id)
+        public async Task<IActionResult> Edit(string id)
         {
-            return View();
+            if (id == null)
+            {
+                return NotFound();
+            }
+
+            var hero = await _context.Hero.FindAsync(id);
+            if (hero == null)
+            {
+                return NotFound();
+            }
+            return View(hero);
         }
 
         // POST: Hero/Edit/5
+        // To protect from overposting attacks, enable the specific properties you want to bind to, for 
+        // more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult Edit(int id, IFormCollection collection)
+        public async Task<IActionResult> Edit(string id, [Bind("Name,AlterEgo,PrimeAbility,SecondAbility,CatchPhrase")] Hero hero)
         {
-            try
+            if (id != hero.Name)
             {
-                // TODO: Add update logic here
+                return NotFound();
+            }
 
+            if (ModelState.IsValid)
+            {
+                try
+                {
+                    _context.Update(hero);
+                    await _context.SaveChangesAsync();
+                }
+                catch (DbUpdateConcurrencyException)
+                {
+                    if (!HeroExists(hero.Name))
+                    {
+                        return NotFound();
+                    }
+                    else
+                    {
+                        throw;
+                    }
+                }
                 return RedirectToAction(nameof(Index));
             }
-            catch
-            {
-                return View();
-            }
+            return View(hero);
         }
 
         // GET: Hero/Delete/5
-        public ActionResult Delete(int id)
+        public async Task<IActionResult> Delete(string id)
         {
-            return View();
+            if (id == null)
+            {
+                return NotFound();
+            }
+
+            var hero = await _context.Hero
+                .FirstOrDefaultAsync(m => m.Name == id);
+            if (hero == null)
+            {
+                return NotFound();
+            }
+
+            return View(hero);
         }
 
         // POST: Hero/Delete/5
-        [HttpPost]
+        [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
-        public ActionResult Delete(int id, IFormCollection collection)
+        public async Task<IActionResult> DeleteConfirmed(string id)
         {
-            try
-            {
-                // TODO: Add delete logic here
+            var hero = await _context.Hero.FindAsync(id);
+            _context.Hero.Remove(hero);
+            await _context.SaveChangesAsync();
+            return RedirectToAction(nameof(Index));
+        }
 
-                return RedirectToAction(nameof(Index));
-            }
-            catch
-            {
-                return View();
-            }
+        private bool HeroExists(string id)
+        {
+            return _context.Hero.Any(e => e.Name == id);
         }
     }
 }
