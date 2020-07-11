@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using SuperHero.Data;
 
 namespace SuperHero.Controllers
 {
@@ -12,7 +13,7 @@ namespace SuperHero.Controllers
     {
         private ApplicationDbContext _context;
         // GET: Hero
-        public HeroController()
+        public HeroController(ApplicationDbContext context)
         {
             _context = context;
         }
