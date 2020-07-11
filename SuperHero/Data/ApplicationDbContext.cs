@@ -13,6 +13,6 @@ namespace SuperHero.Data
             : base(options)
         {           
         }   
-        public DbSet<SuperHero.Models.Hero> Hero { get; set; }
+        public virtual DbSet<SuperHero.Models.Hero> Hero { get; set; }
     }
 }
